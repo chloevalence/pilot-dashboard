@@ -17,12 +17,16 @@ import streamlit_authenticator as stauth
 
 st.set_page_config(page_title="ACSI Emotion Dashboard", layout="wide")
 
-authenticator = stauth.Authenticate(
-    st.secrets['credentials'],
-    st.secrets['cookie']['name'],
-    st.secrets['cookie']['key'],
-    st.secrets['cookie']['expiry_days'],
+credentials = st.secrets["credentials"].copy()
+cookie = st.secrets["cookie"]
+auto_hash = st.secrets.get("auto_hash", False)
 
+authenticator = stauth.Authenticate(
+    credentials,
+    cookie["name"],
+    cookie["key"],
+    cookie["expiry_days"],
+    auto_hash=auto_hash,
 )
 
 authenticator.login(location='main', key='Login')
