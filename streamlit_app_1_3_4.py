@@ -17,7 +17,7 @@ import streamlit_authenticator as stauth
 
 st.set_page_config(page_title="ACSI Emotion Dashboard", layout="wide")
 
-credentials = st.secrets["credentials"].copy()
+credentials = st.secrets["credentials"]
 cookie = st.secrets["cookie"]
 auto_hash = st.secrets.get("auto_hash", False)
 
