@@ -4,6 +4,7 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import zipfile
 import io
+import os
 import json
 import tempfile
 from pathlib import Path
@@ -16,41 +17,11 @@ import streamlit_authenticator as stauth
 
 st.set_page_config(page_title="ACSI Emotion Dashboard", layout="wide")
 
-# Define your user credentials (can also be loaded from a secure YAML or database)
-hashed_passwords = [
-    stauth.Hasher.hash("pickle-kitten-racket"),
-    stauth.Hasher.hash("rosemary-monkey-yellow")
-]
-
-config = {
-    'credentials': {
-        'usernames': {
-            'chloe': {
-                'email': 'chloe@valencevibrations.com',
-                'name': 'Chloe',
-                'password': hashed_passwords[0],
-            },
-            'teammate': {
-                'email': 'shannon@valencevibrations.com',
-                'name': 'Shannon',
-                'password': hashed_passwords[1],
-            }
-        }
-    },
-    'cookie': {
-        'name': 'acsi_dashboard_session',
-        'key': '55984830',  # Use something random and secret
-        'expiry_days': 1
-    },
-    'auto_hash': False
-}
-
 authenticator = stauth.Authenticate(
-    config['credentials'],
-    config['cookie']['name'],
-    config['cookie']['key'],
-    config['cookie']['expiry_days'],
-    config['auto_hash']
+    st.secrets['credentials'],
+    st.secrets['cookie']['name'],
+    st.secrets['cookie']['key'],
+    st.secrets['cookie']['expiry_days'],
 
 )
 
