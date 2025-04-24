@@ -55,29 +55,29 @@ pip install streamlit pandas plotly
 Then run:
 streamlit run streamlit_app_1_3_4.py
 
-Authentication
+## Authentication
 
 This dashboard supports user-level authentication using streamlit-authenticator. User credentials are managed via a secrets.toml file and should not be pushed to GitHub.
 
-Export Options
+## Export Options
 
 Filtered results can be exported as:
-Excel spreadsheets (per agent, per company)
-PDF summary reports with all charts
-All-in-one ZIP containing both
+- Excel spreadsheets (per agent, per company)
+- PDF summary reports with all charts
+- All-in-one ZIP containing both
 
-Known Limitations
+## Known Limitations
 
-Visualizations are static (no scroll/zoom/hover — upcoming feature).
-Date parsing requires "Call Date" in MMDDYYYY format.
-Emotion graph assumes presence of "x" and "y" in each emotion_graph entry.
+- Visualizations are static (no scroll/zoom/hover — upcoming feature).
+- Date parsing requires "Call Date" in MMDDYYYY format.
+- Emotion graph assumes presence of "x" and "y" in each emotion_graph entry.
 
-Coming Soon
+## Coming Soon
 
-Interactive charts (zoom, hover, scroll)
-Agent leaderboards
-Emotion heatmaps
-Custom PDF/Excel export for filtered views
-Saved filter presets
+- Interactive charts (zoom, hover, scroll)
+- Agent leaderboards
+- Emotion heatmaps
+- Custom PDF/Excel export for filtered views
+- Saved filter presets
 
 Made with ❤️ by the Valence team.
