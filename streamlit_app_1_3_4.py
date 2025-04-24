@@ -122,22 +122,14 @@ elif authentication_status:
 
         return graph, meta
 
-    def group_by_weeks(paths):
-        folder_dates = []
+    def get_all_json_paths(paths):
+        json_file_paths = []
         for path in paths:
-            parent = path.parent.name
-            if parent.isdigit() and len(parent) == 8:
-                try:
-                    parsed_date = datetime.strptime(parent, "%m%d%Y")
-                    folder_dates.append((parsed_date, path))
-                except:
-                    continue
-        weeks = defaultdict(list)
-        for date, path in folder_dates:
-            week_start = date - timedelta(days=date.weekday() + 1) if date.weekday() != 6 else date
-            week_start = week_start.replace(hour=0, minute=0, second=0, microsecond=0)
-            weeks[week_start].append(path)
-        return dict(sorted(weeks.items()))
+            if path.suffix == ".json":
+                json_file_paths.append(path)
+        return json_file_paths
+
+
 
     if uploaded_zip:
         with tempfile.TemporaryDirectory() as tmpdir:
@@ -148,15 +140,12 @@ elif authentication_status:
                 zip_ref.extractall(tmpdir)
 
             json_files = list(Path(tmpdir).rglob("*.json"))
-            weeks = group_by_weeks(json_files)
-
-            selected_week = st.selectbox("Select Week", options=list(weeks.keys()))
-            week_paths = weeks[selected_week]
+            all_json_paths = get_all_json_paths(json_files)
 
             graph_frames = []
             meta_rows = []
 
-            for path in week_paths:
+            for path in all_json_paths:
                 gdf, meta = process_json(path)
                 if gdf is not None and meta is not None:
                     graph_frames.append(gdf)
@@ -171,6 +160,14 @@ elif authentication_status:
                 meta_df["Avg Happiness %"] = (meta_df["happy"] / meta_df["Total Emotions"]) * 100
                 meta_df["Call Date"] = pd.to_datetime(meta_df["Call Date"], format="%m%d%Y", errors="coerce")
                 meta_df.dropna(subset=["Call Date"], inplace=True)
+
+                if meta_df["Call Date"].isnull().all():
+                    st.warning("No valid dates found in call metadata.")
+                    st.stop()
+
+                # Add dynamic date range filtering
+                min_date = meta_df["Call Date"].min()
+                max_date = meta_df["Call Date"].max()
 
                 # --- Sidebar Filters ---
                 st.sidebar.header("📊 Filter Data")
@@ -200,11 +197,15 @@ elif authentication_status:
                     elif preset_option == "Last 30 Days":
                         selected_dates = (today - timedelta(days=30), today)
                 else:
-                    selected_dates = st.sidebar.date_input("Select Date Range", value=(min(dates), max(dates)))
-
+                    custom_input = st.sidebar.date_input("Select Date Range", value=(min(dates), max(dates)))
+                    # Ensure it's always a tuple of two dates
+                    if isinstance(custom_input, tuple) and len(custom_input) == 2:
+                        selected_dates = custom_input
+                    else:
+                        selected_dates = (custom_input, custom_input)
                 # Multiselect filters
                 selected_companies = st.sidebar.multiselect("Select Companies", companies, default=companies)
-                available_agents = meta_df[meta_df["Company"].isin(companies)]["Agent"].dropna().unique().tolist()
+                available_agents = meta_df[meta_df["Company"].isin(selected_companies )]["Agent"].dropna().unique().tolist()
                 selected_agents = st.sidebar.multiselect("Select Agents", available_agents, default=available_agents)
 
                 # Filter the DataFrame
