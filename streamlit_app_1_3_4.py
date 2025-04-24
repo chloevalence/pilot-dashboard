@@ -34,8 +34,6 @@ authentication_status = st.session_state.get('authentication_status')
 
 if authentication_status is False:
     st.error('Username or password is incorrect')
-elif authentication_status is None:
-    st.warning('Please enter your username and password')
 elif authentication_status:
     st.sidebar.success(f"Welcome, {st.session_state.get('name')}  👋")
     st.title("📞 ACSI Weekly Call Emotion Dashboard")
