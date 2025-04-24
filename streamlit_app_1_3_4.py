@@ -69,8 +69,19 @@ elif authentication_status:
             return 0
 
     def process_json(filepath):
-        with open(filepath, "r") as f:
-            data = json.load(f)
+        try:
+            with open(filepath, "r", encoding="utf-8") as f:
+                data = json.load(f)
+        except UnicodeDecodeError:
+            try:
+                with open(filepath, "r", encoding="latin-1") as f:
+                    data = json.load(f)
+            except Exception as e:
+                print(f"Skipped file {filepath} due to encoding error: {e}")
+                return None, None
+        except json.JSONDecodeError as e:
+            print(f"Skipped file {filepath} due to JSON format error: {e}")
+            return None, None
 
         metadata = data.get("metadata", {})
         low_conf = metadata.get("low_confidences", 0)
