@@ -50,7 +50,6 @@ Each `.json` file must contain:
 Make sure Streamlit and required dependencies are installed:
 
 ```markdown
-```bash
 pip install streamlit pandas plotly
 streamlit run streamlit_app_1_3_4.py
 ```
