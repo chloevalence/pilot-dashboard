@@ -1,68 +1,70 @@
-
-import zipfile
-import os
-import json
 import firebase_admin
 from firebase_admin import credentials, firestore
+import zipfile
+import json
+import tempfile
 from pathlib import Path
 from tqdm import tqdm
 
-# --- Config (your updated paths) ---
+# --- CONFIG ---
+
+# Path to your zip file containing all JSON folders
 zip_path = "/Users/Chloe/Downloads/JSONs-20250424T060428Z-001.zip"
-private_key_path = "/Users/Chloe/Downloads/valence-acsi-dashboard-firebase-adminsdk-fbsvc-e8065d1b80.json"
+
+# Path to your Firebase private key JSON
+firebase_key_path = "/Users/Chloe/Downloads/valence-acsi-dashboard-firebase-adminsdk-fbsvc-e8065d1b80.json"
+
+# Name of the Firestore collection where data will be uploaded
+collection_name = "calls"
 
 # --- Initialize Firebase ---
+
 print("✅ Initializing Firebase...")
-cred = credentials.Certificate(private_key_path)
+cred = credentials.Certificate(firebase_key_path)
 if not firebase_admin._apps:
     firebase_admin.initialize_app(cred)
 db = firestore.client()
 
-# --- Unzip the files ---
+# --- Unzip JSON files ---
 print("✅ Unzipping JSON files...")
-temp_dir = "/tmp/unzipped_jsons"
-os.makedirs(temp_dir, exist_ok=True)
+with tempfile.TemporaryDirectory() as tmpdir:
+    with zipfile.ZipFile(zip_path, "r") as zip_ref:
+        zip_ref.extractall(tmpdir)
 
-with zipfile.ZipFile(zip_path, "r") as zip_ref:
-    zip_ref.extractall(temp_dir)
+    json_files = list(Path(tmpdir).rglob("*.json"))
+    print(f"✅ Found {len(json_files)} JSON files.")
 
-# --- Find all JSON files ---
-json_files = list(Path(temp_dir).rglob("*.json"))
-print(f"✅ Found {len(json_files)} JSON files.")
-
-if not json_files:
-    print("❌ No JSON files found after unzipping. Check your zip_path.")
-    exit()
-
-# --- Upload each JSON to Firestore ---
-print("✅ Uploading data to Firestore...")
-
-for json_file in tqdm(json_files, desc="Uploading"):
-    with open(json_file, "r", encoding="utf-8") as f:
+    # --- Upload each JSON to Firestore ---
+    print("✅ Uploading data to Firestore...")
+    for json_file in tqdm(json_files, desc="Uploading JSONs"):
         try:
-            data = json.load(f)
+            with open(json_file, "r", encoding="utf-8") as f:
+                data = json.load(f)
         except json.JSONDecodeError:
-            print(f"⚠️ Skipping {json_file} due to decode error.")
+            print(f"⚠️ Skipping bad JSON file: {json_file}")
             continue
 
-    # Get metadata
-    metadata = data.get("metadata", {})
+        # --- Parse Metadata Safely ---
+        metadata = data.get("metadata", {})
 
-    upload_data = {
-        "Call ID": metadata.get("call_id", json_file.stem),
-        "Agent": metadata.get("agent", "Unknown"),
-        "Company": metadata.get("company", "Unknown"),
-        "Call Time": metadata.get("time", "Unknown"),
-        "Call Date": metadata.get("date", None),
-        "Low Confidences": metadata.get("low_confidences", 0),
-        "average_happiness_value": data.get("average_happiness_value", None),
-        "speaking_time_per_speaker": data.get("speaking_time_per_speaker", {}),
-        "emotion_counts": data.get("emotion_counts", {}),
-        "emotion_graph": data.get("emotion_graph", [])
-    }
+        doc_data = {
+            "Call ID": metadata.get("call_id", json_file.stem),
+            "Agent": metadata.get("agent", "Unknown"),
+            "Company": metadata.get("company", "Unknown"),
+            "Call Time": metadata.get("time", "Unknown"),
+            "Call Date": metadata.get("date", None),
+            "Low Confidences": metadata.get("low_confidences", 0),
+            "average_happiness_value": data.get("average_happiness_value", None),
+            "speaking_time_per_speaker": data.get("speaking_time_per_speaker", {}),
+            "emotion_counts": data.get("emotion_counts", {}),
+            "emotion_graph": data.get("emotion_graph", [])
+        }
 
-    # Upload to Firestore
-    doc_ref = db.collection("calls").document(json_file.stem)
-    doc_ref.set(upload_data)
+        # --- Upload each doc ---
+        try:
+            doc_ref = db.collection(collection_name).document(json_file.stem)
+            doc_ref.set(doc_data)
+        except Exception as e:
+            print(f"❌ Failed to upload {json_file}: {e}")
 
 print("🎉 All JSON files successfully uploaded to Firestore!")
