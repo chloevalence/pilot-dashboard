@@ -7,7 +7,7 @@ from firebase_admin import credentials, firestore
 from pathlib import Path
 
 # --- Firebase Setup ---
-cred = credentials.Certificate("/Users/Chloe/Downloads/firebase-adminsdk-abc123.json") 
+cred = credentials.Certificate("/Users/Chloe/Downloads/valence-acsi-dashboard-firebase-adminsdk-fbsvc-e8065d1b80.json")
 firebase_admin.initialize_app(cred)
 
 db = firestore.client()
