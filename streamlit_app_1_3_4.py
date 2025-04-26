@@ -109,6 +109,12 @@ elif authentication_status:
         "ABCMotors": "#2ca02c"
     }
 
+    for emotion in ["happy", "angry", "sad", "neutral"]:
+        if emotion not in meta_df.columns:
+            meta_df[emotion] = 0
+
+    meta_df["Total Emotions"] = meta_df[["happy", "angry", "sad", "neutral"]].sum(axis=1)
+
     # --- Prepare Metadata ---
     meta_df["Call Duration (min)"] = meta_df["Call Duration (s)"] / 60
     meta_df["Total Emotions"] = meta_df[["happy", "angry", "sad", "neutral"]].sum(axis=1)
