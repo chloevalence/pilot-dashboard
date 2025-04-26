@@ -80,6 +80,8 @@ if meta_df["Call Date"].isnull().any():
 # Now finally parse as datetime
 meta_df["Call Date"] = pd.to_datetime(meta_df["Call Date"], format="%m%d%Y", errors="coerce")
 
+# Fix: Create Avg Happiness % directly from average_happiness_value
+meta_df["Avg Happiness %"] = meta_df["average_happiness_value"]
 
 # --- Recompute "Call Duration (s)" if missing ---
 if "Call Duration (s)" not in meta_df.columns:
