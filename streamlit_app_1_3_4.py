@@ -382,7 +382,7 @@ elif authentication_status:
 
             # --- Download Buttons ---
             st.download_button(
-                label="📥 Download Full Weekly Report (Excel)",
+                label="📥 Download Raw Data (Excel)",
                 data=excel_buffer.getvalue(),
                 file_name=f"call_report_{selected_dates[0]}_to_{selected_dates[1]}.xlsx",
                 mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
