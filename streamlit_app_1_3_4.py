@@ -50,6 +50,28 @@ if meta_df.empty:
     st.warning("No call data found in Firestore.")
     st.stop()
 
+# --- Recompute "Call Duration (s)" if missing ---
+if "Call Duration (s)" not in meta_df.columns:
+    if "speaking_time_per_speaker" in meta_df.columns:
+        def compute_speaking_time(row):
+            speaking_times = row["speaking_time_per_speaker"]
+            if isinstance(speaking_times, dict):
+                total = 0
+                for t in speaking_times.values():
+                    if isinstance(t, str) and ":" in t:
+                        try:
+                            minutes, seconds = map(int, t.split(":"))
+                            total += minutes * 60 + seconds
+                        except:
+                            pass
+                return total
+            return None
+
+        meta_df["Call Duration (s)"] = meta_df.apply(compute_speaking_time, axis=1)
+    else:
+        meta_df["Call Duration (s)"] = None
+
+
 authenticator = stauth.Authenticate(
     credentials,
     cookie["name"],
