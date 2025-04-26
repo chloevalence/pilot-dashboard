@@ -42,6 +42,7 @@ Each `.json` file must contain:
 - **Robust Encoding Support**: Automatically handles UTF-8 and fallback to Latin-1 for legacy JSONs.
 - **Cross-Week Filtering**: Unlike older versions, filters now span all dates and are not restricted to folder-level grouping.
 - **Summary Metrics**: Aggregates and displays call-level KPIs in real-time.
+- **Agent leaderboards**: Analyzes call volume, happiness scores, and handle time for each agent.
 - **Date Presets**: Users can easily view stats for this week, last 7 days, or any custom range.
 - **Sidebar Filters**: Fast filtering by company and agent.
 
@@ -73,9 +74,9 @@ Filtered results can be exported as:
 
 ## Coming Soon
 
+- Generative AI insights
+- Persistent data storage
 - Interactive charts (zoom, hover, scroll)
-- Agent leaderboards
-- Emotion heatmaps
 - Custom PDF/Excel export for filtered views
 - Saved filter presets
 
