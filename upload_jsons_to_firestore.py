@@ -43,3 +43,63 @@ def is_valid_json(filepath):
         with open(filepath, "r", encoding="utf-8") as f:
             data = json.load(f)
     except Exception:
+        return False, "JSON parsing error"
+
+    metadata = data.get("metadata", {})
+    required_fields = ["agent", "company", "time", "date"]
+    for field in required_fields:
+        if not metadata.get(field):
+            return False, f"Missing metadata field: {field}"
+
+    if data.get("average_happiness_value") is None:
+        return False, "Missing average_happiness_value"
+
+    return True, data
+
+# --- UPLOAD ---
+skipped_files = []
+uploaded_count = 0
+
+print("✅ Uploading data to Firestore...")
+for idx, filepath in enumerate(json_files, 1):
+    valid, result = is_valid_json(filepath)
+    if not valid:
+        skipped_files.append((filepath.name, result))
+        continue
+
+    data = result
+
+    # Safe-guard missing emotion counts
+    emotion_counts = data.get("emotion_counts", {})
+    for emotion in ["happy", "angry", "sad", "neutral"]:
+        if emotion not in emotion_counts:
+            emotion_counts[emotion] = 0
+
+    document_id = filepath.stem
+    upload_payload = {
+        "call_id": document_id,
+        "agent": data["metadata"]["agent"],
+        "company": data["metadata"]["company"],
+        "time": data["metadata"]["time"],
+        "date": data["metadata"]["date"],
+        "average_happiness_value": data["average_happiness_value"],
+        "low_confidences": data["metadata"].get("low_confidences", 0),
+        **emotion_counts
+    }
+
+    db.collection(collection_name).document(document_id).set(upload_payload)
+    uploaded_count += 1
+
+    if uploaded_count % 100 == 0:
+        print(f"✅ Uploaded {uploaded_count} calls...")
+
+# --- LOG SKIPPED FILES ---
+if skipped_files:
+    with open(skipped_log_path, "w") as f:
+        for filename, reason in skipped_files:
+            f.write(f"{filename} — {reason}\n")
+    print(f"⚠️ Skipped {len(skipped_files)} files. Logged to {skipped_log_path}")
+else:
+    print("✅ No skipped files.")
+
+print(f"🎉 Upload complete. {uploaded_count} calls uploaded successfully.")
