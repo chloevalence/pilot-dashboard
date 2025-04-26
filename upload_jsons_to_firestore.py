@@ -5,6 +5,7 @@ import json
 import firebase_admin
 from firebase_admin import credentials, firestore
 from pathlib import Path
+from tqdm import tqdm
 
 # --- Config (your updated paths) ---
 zip_path = "/Users/Chloe/Downloads/JSONs-20250424T060428Z-001.zip"
@@ -36,7 +37,7 @@ if not json_files:
 # --- Upload each JSON to Firestore ---
 print("✅ Uploading data to Firestore...")
 
-for json_file in json_files:
+for json_file in tqdm(json_files, desc="Uploading"):
     with open(json_file, "r", encoding="utf-8") as f:
         try:
             data = json.load(f)
