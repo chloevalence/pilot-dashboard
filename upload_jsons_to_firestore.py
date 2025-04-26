@@ -6,32 +6,45 @@ import firebase_admin
 from firebase_admin import credentials, firestore
 from pathlib import Path
 
+# --- Config (your updated paths) ---
+zip_path = "/Users/Chloe/Downloads/JSONs-20250424T060428Z-001.zip"
+private_key_path = "/Users/Chloe/Downloads/valence-acsi-dashboard-firebase-adminsdk-fbsvc-e8065d1b80.json"
+
 # --- Initialize Firebase ---
-cred = credentials.Certificate("/Users/Chloe/Downloads/valence-acsi-dashboard-firebase-adminsdk-fbsvc-e8065d1b80.json")
+print("✅ Initializing Firebase...")
+cred = credentials.Certificate(private_key_path)
 if not firebase_admin._apps:
     firebase_admin.initialize_app(cred)
 db = firestore.client()
 
-# --- Unzip and Parse ---
-zip_path = "/Users/Chloe/Downloads/JSONs-20250424T060428Z-001.zip"
+# --- Unzip the files ---
+print("✅ Unzipping JSON files...")
 temp_dir = "/tmp/unzipped_jsons"
 os.makedirs(temp_dir, exist_ok=True)
 
 with zipfile.ZipFile(zip_path, "r") as zip_ref:
     zip_ref.extractall(temp_dir)
 
-# --- Upload to Firestore ---
+# --- Find all JSON files ---
 json_files = list(Path(temp_dir).rglob("*.json"))
+print(f"✅ Found {len(json_files)} JSON files.")
+
+if not json_files:
+    print("❌ No JSON files found after unzipping. Check your zip_path.")
+    exit()
+
+# --- Upload each JSON to Firestore ---
+print("✅ Uploading data to Firestore...")
 
 for json_file in json_files:
     with open(json_file, "r", encoding="utf-8") as f:
         try:
             data = json.load(f)
         except json.JSONDecodeError:
-            print(f"Skipping {json_file} due to decode error.")
+            print(f"⚠️ Skipping {json_file} due to decode error.")
             continue
 
-    # Metadata
+    # Get metadata
     metadata = data.get("metadata", {})
 
     upload_data = {
@@ -47,8 +60,8 @@ for json_file in json_files:
         "emotion_graph": data.get("emotion_graph", [])
     }
 
-    # Upload
+    # Upload to Firestore
     doc_ref = db.collection("calls").document(json_file.stem)
     doc_ref.set(upload_data)
 
-print("✅ Finished uploading all call data to Firestore.")
+print("🎉 All JSON files successfully uploaded to Firestore!")
