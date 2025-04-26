@@ -7,13 +7,13 @@ from firebase_admin import credentials, firestore
 from pathlib import Path
 
 # --- Firebase Setup ---
-cred = credentials.Certificate("/path/to/your/firebase-private-key.json")  # Change this to your real private key
+cred = credentials.Certificate("/Users/Chloe/Downloads/firebase-adminsdk-abc123.json") 
 firebase_admin.initialize_app(cred)
 
 db = firestore.client()
 
 # --- Path to your local ZIP file ---
-zip_path = "/path/to/your/jsons-folder.zip"  # Change this to your real ZIP path
+zip_path = "/Users/Chloe/Downloads/JSONs-20250424T060428Z-001.zip"
 
 # --- Extract the ZIP into a temp folder ---
 with tempfile.TemporaryDirectory() as tmpdir:
