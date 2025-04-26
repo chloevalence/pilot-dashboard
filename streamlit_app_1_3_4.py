@@ -42,6 +42,7 @@ elif authentication_status:
     # --- Sidebar Section Toggles ---
     st.sidebar.header("Display Options")
     show_summary = st.sidebar.checkbox("📋 Show Summary Table", value=True)
+    show_leaderboard = st.sidebar.checkbox("🏆 Show Agent Leaderboard", value=True)
     show_agent = st.sidebar.checkbox("📊 Show Happiness by Agent", value=True)
     show_rolling = st.sidebar.checkbox("📈 Show Rolling Happiness", value=True)
     show_emotion_by_company = st.sidebar.checkbox("🎯 Show Emotion Distribution by Company", value=True)
@@ -128,8 +129,6 @@ elif authentication_status:
             if path.suffix == ".json":
                 json_file_paths.append(path)
         return json_file_paths
-
-
 
     if uploaded_zip:
         with tempfile.TemporaryDirectory() as tmpdir:
@@ -220,7 +219,6 @@ elif authentication_status:
                     st.warning("⚠️ No data matches the current filter selection. Please adjust your filters.")
                     st.stop()
 
-
             else:
                 st.warning("No valid call data was extracted from the JSON files.")
                 st.stop()
@@ -243,11 +241,53 @@ elif authentication_status:
                 col3.metric("Avg Duration (min)", f"{filtered_df['Call Duration (min)'].mean():.1f}")
                 st.dataframe(summary_df)
 
+            figures = []
+
+            if show_leaderboard:
+                # Streamlit display part
+                st.subheader("🏆 Agent Leaderboard")
+
+                # Generate summary table
+                agent_summary = filtered_df.groupby("Agent").agg(
+                    Total_Calls=("Call ID", "count"),
+                    Avg_Happiness_Percent=("Avg Happiness %", "mean"),
+                    Avg_Call_Duration_Min=("Call Duration (min)", "mean")
+                ).reset_index()
+
+                # Sort by happiness % descending
+                agent_summary = agent_summary.sort_values(by="Avg_Happiness_Percent", ascending=False)
+
+                # Show in Streamlit
+                st.dataframe(agent_summary, use_container_width=True)
+
+                # PDF export part
+                fig_leaderboard, ax = plt.subplots(figsize=(10, 6))
+                ax.axis('tight')
+                ax.axis('off')
+
+                # Round numbers for a clean table
+                table_data = agent_summary.round(1)
+
+                # Build the table
+                table = ax.table(
+                    cellText=table_data.values,
+                    colLabels=table_data.columns,
+                    loc='center'
+                )
+
+                table.auto_set_font_size(False)
+                table.set_fontsize(10)
+                table.auto_set_column_width(col=list(range(len(agent_summary.columns))))
+
+                # Append the leaderboard to the figures list for export
+                figures.append(fig_leaderboard)
+                plt.close(fig_leaderboard)
+
             col4, col5 = st.columns(2)
             col6, col7 = st.columns(2)
             col8, col9 = st.columns(2)
             col10, col11 = st.columns(2)
-            figures = []
+
             with col4:
                 if show_agent:
                     st.subheader("📊 Average Happiness by Agent")
