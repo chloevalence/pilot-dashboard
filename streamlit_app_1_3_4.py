@@ -50,6 +50,37 @@ if meta_df.empty:
     st.warning("No call data found in Firestore.")
     st.stop()
 
+# --- Fix Call Date if missing ---
+if "Call Date" not in meta_df.columns:
+    if "metadata" in meta_df.columns:
+        # Try to extract from metadata first
+        meta_df["Call Date"] = meta_df["metadata"].apply(
+            lambda x: x.get("Call Date") if isinstance(x, dict) else None
+        )
+    else:
+        meta_df["Call Date"] = None
+
+# Still missing? Try to infer from document ID if possible
+if meta_df["Call Date"].isnull().any():
+    if "Call ID" in meta_df.columns:
+        # Assuming document ID has MMDDYYYY in it (like call_04152025_001.json or something)
+        def infer_date_from_id(doc_id):
+            # You might need to customize this based on your file naming
+            # Look for 8 consecutive digits
+            import re
+            match = re.search(r"\d{8}", doc_id)
+            if match:
+                return match.group(0)  # returns '04152025'
+            return None
+
+        meta_df.loc[meta_df["Call Date"].isnull(), "Call Date"] = meta_df.loc[
+            meta_df["Call Date"].isnull(), "Call ID"
+        ].apply(lambda x: infer_date_from_id(str(x)) if pd.notnull(x) else None)
+
+# Now finally parse as datetime
+meta_df["Call Date"] = pd.to_datetime(meta_df["Call Date"], format="%m%d%Y", errors="coerce")
+
+
 # --- Recompute "Call Duration (s)" if missing ---
 if "Call Duration (s)" not in meta_df.columns:
     if "speaking_time_per_speaker" in meta_df.columns:
