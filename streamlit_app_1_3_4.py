@@ -54,6 +54,8 @@ meta_df.rename(columns={
     "agent":     "Agent",
     "call_date": "Call Date",
     "time":      "Call Time",
+    "call_id": "Call ID",
+    "low_confidences": "Low Confidences",
 }, inplace=True)
 
 # 1) Parse “Call Date” into a true datetime dtype (handles both strings and datetimes)
@@ -208,7 +210,7 @@ elif authentication_status:
     if show_leaderboard:
         st.subheader("🏆 Agent Leaderboard")
         agent_summary = filtered_df.groupby("Agent").agg(
-            Total_Calls=("call_id", "count"),
+            Total_Calls=("Call ID", "count"),
             Avg_Happiness_Percent=("Avg Happiness %", "mean"),
             Avg_Call_Duration_Min=("Call Duration (min)", "mean")
         ).reset_index().sort_values(by="Avg_Happiness_Percent", ascending=False)
