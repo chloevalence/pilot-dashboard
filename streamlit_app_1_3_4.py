@@ -10,7 +10,6 @@ import streamlit_authenticator as stauth
 import firebase_admin
 from firebase_admin import credentials, firestore
 import json
-from google.cloud import firestore
 
 # Build Firebase credentials from secrets
 firebase_creds = {
@@ -38,7 +37,7 @@ def load_all_calls(page_size: int = 1000):
     Paginate through 'calls' in Firestore 1,000 docs at a time,
     assemble into a single list, and cache the result for 1h.
     """
-    client = firestore.Client()            # uses your default credentials
+    client = firestore.client()            # uses your default credentials
     coll = client.collection("calls")
     all_calls = []
     last_doc = None
@@ -55,7 +54,6 @@ def load_all_calls(page_size: int = 1000):
         last_doc = batch[-1]
 
     return all_calls
-
 
 # Connect to Firestore
 db = firestore.client()
