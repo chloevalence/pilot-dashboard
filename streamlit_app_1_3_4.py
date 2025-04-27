@@ -10,6 +10,7 @@ import streamlit_authenticator as stauth
 import firebase_admin
 from firebase_admin import credentials, firestore
 import json
+from google.cloud import firestore
 
 # Build Firebase credentials from secrets
 firebase_creds = {
@@ -31,6 +32,31 @@ cred = credentials.Certificate(firebase_creds)
 if not firebase_admin._apps:
     firebase_admin.initialize_app(cred)
 
+@st.cache_data(ttl=3600)
+def load_all_calls(page_size: int = 1000):
+    """
+    Paginate through 'calls' in Firestore 1,000 docs at a time,
+    assemble into a single list, and cache the result for 1h.
+    """
+    client = firestore.Client()            # uses your default credentials
+    coll = client.collection("calls")
+    all_calls = []
+    last_doc = None
+
+    while True:
+        query = coll.order_by("call_date")
+        if last_doc:
+            query = query.start_after(last_doc)
+        batch = list(query.limit(page_size).stream())
+        if not batch:
+            break
+        # accumulate and advance cursor
+        all_calls.extend(d.to_dict() for d in batch)
+        last_doc = batch[-1]
+
+    return all_calls
+
+
 # Connect to Firestore
 db = firestore.client()
 
@@ -41,11 +67,10 @@ cookie = st.secrets["cookie"]
 auto_hash = st.secrets.get("auto_hash", False)
 
 # --- Fetch Call Metadata ---
-calls_ref = db.collection('calls')
-docs = calls_ref.stream()
-
-call_data = [doc.to_dict() for doc in docs]
+with st.spinner("⏳ Loading call data…"):
+    call_data = load_all_calls(page_size=1000)
 meta_df = pd.DataFrame(call_data)
+
 
 # --- Normalize raw fields into your canonical names: ---
 
