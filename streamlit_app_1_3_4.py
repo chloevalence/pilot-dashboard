@@ -114,15 +114,11 @@ authenticator = stauth.Authenticate(
     auto_hash=auto_hash,
 )
 
-authenticator.login(location='main', key='Login')
-authentication_status = st.session_state.get('authentication_status')
+# --- LOGIN GUARD ---
+name, authentication_status, username = authenticator.login('Login', 'main')
 
-if authentication_status is False:
-    st.error('Username or password is incorrect')
-elif authentication_status:
-    st.sidebar.success(f"Welcome, {st.session_state.get('name')}  👋")
-    st.title("📞 ACSI Weekly Call Emotion Dashboard")
-
+if authentication_status:
+    st.sidebar.success(f"Welcome, {name} 👋")
     # --- Sidebar Section Toggles ---
     st.sidebar.header("Display Options")
     show_summary = st.sidebar.checkbox("📋 Show Summary Table", value=True)
@@ -195,7 +191,7 @@ elif authentication_status:
 
     # Multiselect filters
     selected_companies = st.sidebar.multiselect("Select Companies", companies, default=companies)
-    available_agents = meta_df[meta_df["Company"].isin(selected_companies )]["Agent"].dropna().unique().tolist()
+    available_agents = meta_df[meta_df["Company"].isin(selected_companies)]["Agent"].dropna().unique().tolist()
     selected_agents = st.sidebar.multiselect("Select Agents", available_agents, default=available_agents)
 
     # Filter the DataFrame
@@ -304,18 +300,19 @@ elif authentication_status:
         if show_duration_vs_happiness:
             st.subheader("📍 Call Duration vs. Avg Happiness")
             fig5, ax5 = plt.subplots(figsize=(8, 5))
-            sns.scatterplot(data=filtered_df, x="Call Duration (min)", y="Avg Happiness %", hue="Company", palette=company_colors, ax=ax5)
+            sns.scatterplot(data=filtered_df, x="Call Duration (min)", y="Avg Happiness %", hue="Company",
+                            palette=company_colors, ax=ax5)
             ax5.set_xlabel("Call Duration (min)")
             ax5.set_ylabel("Avg Happiness (%)")
             st.pyplot(fig5)
             figures.append((fig5, "Duration vs Happiness"))
 
-
     with col9:
         if show_confidence:
             st.subheader("📈 Happiness vs. Low Confidence")
             fig6, ax6 = plt.subplots(figsize=(8, 5))
-            sns.scatterplot(data=filtered_df, x="Low Confidences", y="Avg Happiness %", hue="Company", palette=company_colors, ax=ax6)
+            sns.scatterplot(data=filtered_df, x="Low Confidences", y="Avg Happiness %", hue="Company",
+                            palette=company_colors, ax=ax6)
             ax6.set_xlabel("Low Confidence (%)")
             ax6.set_ylabel("Avg Happiness (%)")
             st.pyplot(fig6)
@@ -374,11 +371,13 @@ elif authentication_status:
         worksheet = workbook.add_worksheet("Charts")
         writer.sheets["Charts"] = worksheet
 
+
         def insert_plot(fig, cell):
             imgdata = io.BytesIO()
             fig.savefig(imgdata, format='png', dpi=150, bbox_inches="tight")
             imgdata.seek(0)
             worksheet.insert_image(cell, "", {"image_data": imgdata})
+
 
         # Insert all figures in 2-column layout
         for idx, (fig, _) in enumerate(figures):
@@ -387,7 +386,7 @@ elif authentication_status:
             cell = f"{chr(65 + col)}{row + 1}"  # e.g., A1, I1, A26, I26
             insert_plot(fig, cell)
 
-# --- Download Buttons ---
+    # --- Download Buttons ---
     st.download_button(
         label="📥 Download Raw Data (Excel)",
         data=excel_buffer.getvalue(),
@@ -418,6 +417,13 @@ elif authentication_status:
         file_name="ACSI_Charts.pdf",
         mime="application/pdf"
     )
+
+elif authentication_status is False:
+    st.error('❌ Username or password is incorrect')
+    st.stop()   # <-- immediately halt so nothing else flashes through
+else:
+    st.warning('🔑 Please enter your username and password')
+    st.stop()   # <-- immediately halt until they log in
 
 st.markdown("---")
 st.markdown("Built with ❤️ by [Valence](https://www.getvalenceai.com) | ACSI Pilot Dashboard © 2025")
