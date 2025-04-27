@@ -115,10 +115,7 @@ authenticator = stauth.Authenticate(
 )
 
 # --- LOGIN GUARD ---
-name, authentication_status, username = authenticator.login(
-    location='main',
-    key='Login'
-)
+name, authentication_status, username = authenticator.login("Login", "main")
 
 if authentication_status:
     st.sidebar.success(f"Welcome, {name} 👋")
