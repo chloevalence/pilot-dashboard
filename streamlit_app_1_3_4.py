@@ -120,11 +120,19 @@ elif authentication_status:
     meta_df["Avg Happiness %"] = (meta_df["happy"] / meta_df["Total Emotions"]) * 100
 
     # Firestore already stores proper datetime objects — no need to parse format
-    # Just rename it to "Call Date" for consistency
-    meta_df.rename(columns={"date": "Call Date"}, inplace=True)
-
-    meta_df.dropna(subset=["Call Date"], inplace=True)
-
+    # --- Normalize any date-like field to "Call Date" ---
+    # look for common variants
+    date_cols = [c for c in meta_df.columns
+                 if c.lower() in ("call_date", "date", "timestamp")]
+    if date_cols:
+        src = date_cols[0]
+        meta_df.rename(columns={src: "Call Date"}, inplace=True)
+        # ensure it's a datetime
+        meta_df["Call Date"] = pd.to_datetime(meta_df["Call Date"], errors="coerce")
+        # now drop rows that really have no date
+        meta_df.dropna(subset=["Call Date"], inplace=True)
+    else:
+        st.error("⚠️ No date column found (tried: " + ", ".join(date_cols) + ").")
 
     # --- Sidebar Filters ---
     st.sidebar.header("📊 Filter Data")
