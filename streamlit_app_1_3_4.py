@@ -46,10 +46,6 @@ docs = calls_ref.stream()
 call_data = [doc.to_dict() for doc in docs]
 meta_df = pd.DataFrame(call_data)
 
-if meta_df.empty:
-    st.warning("No call data found in Firestore.")
-    st.stop()
-
 # Fix: Create Avg Happiness % directly from average_happiness_value
 meta_df["Avg Happiness %"] = meta_df["average_happiness_value"]
 
