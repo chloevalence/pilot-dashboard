@@ -46,8 +46,20 @@ docs = calls_ref.stream()
 call_data = [doc.to_dict() for doc in docs]
 meta_df = pd.DataFrame(call_data)
 
-# DEBUG: what fields did we actually get back from Firestore?
-st.sidebar.write("⚙️ Columns in meta_df:", meta_df.columns.tolist())
+import pandas as pd
+
+# --- Normalize raw fields into your canonical names: ---
+meta_df.rename(columns={
+    "company":   "Company",
+    "agent":     "Agent",
+    "call_date": "Call Date",
+}, inplace=True)
+
+# 1) Parse “Call Date” into a true datetime dtype (handles both strings and datetimes)
+meta_df["Call Date"] = pd.to_datetime(meta_df["Call Date"], errors="coerce")
+
+# 2) Drop any rows where that failed
+meta_df.dropna(subset=["Call Date"], inplace=True)
 
 # Fix: Create Avg Happiness % directly from average_happiness_value
 meta_df["Avg Happiness %"] = meta_df["average_happiness_value"]
@@ -121,19 +133,6 @@ elif authentication_status:
     meta_df["Call Duration (min)"] = meta_df["Call Duration (s)"] / 60
     meta_df["Total Emotions"] = meta_df[["happy", "angry", "sad", "neutral"]].sum(axis=1)
     meta_df["Avg Happiness %"] = (meta_df["happy"] / meta_df["Total Emotions"]) * 100
-
-    # Firestore already stores proper datetime objects — no need to parse format
-    # --- Parse your call_date into a proper datetime column ---
-    if "call_date" in meta_df.columns:
-        # normalize everything (strings or datetimes) into a true timestamp series
-        meta_df["Call Date"] = pd.to_datetime(
-            meta_df["call_date"],
-            errors="coerce"  # unparseable → NaT
-        )
-        # now drop rows where that failed
-        meta_df.dropna(subset=["Call Date"], inplace=True)
-    else:
-        st.error("⚠️ No column named 'call_date' found in your data.")
 
     # --- Sidebar Filters ---
     st.sidebar.header("📊 Filter Data")
