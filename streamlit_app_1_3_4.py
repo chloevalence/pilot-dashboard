@@ -376,10 +376,20 @@ with ExcelWriter(excel_buffer, engine="xlsxwriter") as writer:
     # === Prepare a copy for export, converting the dict column to JSON text ===
     export_df = filtered_df.copy()
 
-    if "speaking_time_per_speaker" in export_df.columns:
-        export_df["speaking_time_per_speaker"] = export_df[
-            "speaking_time_per_speaker"
-        ].apply(lambda d: json.dumps(d) if isinstance(d, dict) else "")
+    # Clean every cell: JSON-encode dicts/lists, strip tz from datetimes
+    from datetime import datetime, timezone
+    def _clean(val):
+        # nested objects → JSON text
+        if isinstance(val, (dict, list)):
+            return json.dumps(val)
+        # timezone-aware datetimes → drop tzinfo
+        if isinstance(val, datetime) and val.tzinfo is not None:
+            # convert to UTC then drop tz
+            val = val.astimezone(timezone.utc).replace(tzinfo=None)
+            return val
+        return val
+
+    export_df = export_df.applymap(_clean)
 
     # Now write export_df instead of filtered_df
     export_df.to_excel(writer, sheet_name="Call Metadata", index=False)
