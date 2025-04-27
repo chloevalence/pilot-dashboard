@@ -207,7 +207,7 @@ elif authentication_status:
     if show_leaderboard:
         st.subheader("🏆 Agent Leaderboard")
         agent_summary = filtered_df.groupby("Agent").agg(
-            Total_Calls=("Call ID", "count"),
+            Total_Calls=("call_id", "count"),
             Avg_Happiness_Percent=("Avg Happiness %", "mean"),
             Avg_Call_Duration_Min=("Call Duration (min)", "mean")
         ).reset_index().sort_values(by="Avg_Happiness_Percent", ascending=False)
