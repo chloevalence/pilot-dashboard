@@ -72,6 +72,18 @@ if ("Call Date" not in meta_df.columns) or meta_df["Call Date"].isna().all():
 
 # Now, drop anything still unparseable in one go
 before = len(meta_df)
+
+# — identify any calls still missing a date —
+missing = meta_df[meta_df["Call Date"].isna()]
+
+if not missing.empty:
+    st.sidebar.error(f"❌ {len(missing)} calls have no valid date and will be dropped:")
+    # show a small table of their Call IDs and raw dates
+    st.sidebar.dataframe(
+        missing[["Call ID", "Date Raw", "Company", "Agent"]]
+        .reset_index(drop=True)
+    )
+
 meta_df.dropna(subset=["Call Date"], inplace=True)
 dropped = before - len(meta_df)
 if dropped:
