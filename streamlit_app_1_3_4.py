@@ -127,7 +127,8 @@ if auth_status is False:
     st.error("❌ Username or password is incorrect")
     st.stop()
 
-st.sidebar.success(f"Welcome, {name} 👋")
+st.sidebar.success(f"Welcome, {st.session_state.get('name')} 👋")
+
 # --- Sidebar Section Toggles ---
 st.sidebar.header("Display Options")
 show_summary = st.sidebar.checkbox("📋 Show Summary Table", value=True)
