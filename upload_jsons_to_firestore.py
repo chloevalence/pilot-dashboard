@@ -53,15 +53,10 @@ for file_path in temp_dir.rglob("*.json"):
     date_raw    = metadata.get("date")  # MMDDYYYY string
 
     # --- Parse the real timestamp from top-level call_date ---
-    raw_call_date = data.get("call_date")
-    if isinstance(raw_call_date, str):
-        try:
-            parsed_call_date = date_parser.parse(raw_call_date)
-        except Exception:
-            parsed_call_date = None
-    elif isinstance(raw_call_date, datetime):
-        parsed_call_date = raw_call_date
-    else:
+    raw_call_date = metadata.get("date")  # e.g. "04112025"
+    try:
+        parsed_call_date = datetime.strptime(raw_call_date, "%m%d%Y")
+    except Exception:
         parsed_call_date = None
 
     # --- Flatten emotion_counts dict ---
