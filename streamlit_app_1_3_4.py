@@ -9,6 +9,7 @@ from matplotlib.backends.backend_pdf import PdfPages
 import streamlit_authenticator as stauth
 import firebase_admin
 from firebase_admin import credentials, firestore
+import json
 
 # Build Firebase credentials from secrets
 firebase_creds = {
@@ -372,8 +373,16 @@ if show_volume:
 # --- Create Excel in memory ---
 excel_buffer = io.BytesIO()
 with ExcelWriter(excel_buffer, engine="xlsxwriter") as writer:
-    # Data sheets
-    filtered_df.to_excel(writer, sheet_name="Call Metadata", index=False)
+    # === Prepare a copy for export, converting the dict column to JSON text ===
+    export_df = filtered_df.copy()
+
+    if "speaking_time_per_speaker" in export_df.columns:
+        export_df["speaking_time_per_speaker"] = export_df[
+            "speaking_time_per_speaker"
+        ].apply(lambda d: json.dumps(d) if isinstance(d, dict) else "")
+
+    # Now write export_df instead of filtered_df
+    export_df.to_excel(writer, sheet_name="Call Metadata", index=False)
     summary_df.to_excel(writer, sheet_name="Summary", index=False)
 
     # Charts sheet
@@ -381,13 +390,11 @@ with ExcelWriter(excel_buffer, engine="xlsxwriter") as writer:
     worksheet = workbook.add_worksheet("Charts")
     writer.sheets["Charts"] = worksheet
 
-
     def insert_plot(fig, cell):
         imgdata = io.BytesIO()
         fig.savefig(imgdata, format='png', dpi=150, bbox_inches="tight")
         imgdata.seek(0)
         worksheet.insert_image(cell, "", {"image_data": imgdata})
-
 
     # Insert all figures in 2-column layout
     for idx, (fig, _) in enumerate(figures):
