@@ -69,6 +69,16 @@ with st.spinner("⏳ Loading call data…"):
     call_data = load_all_calls(page_size=1000)
 meta_df = pd.DataFrame(call_data)
 
+import time
+
+with st.spinner("⏳ Loading call data…"):
+    t0 = time.time()
+    call_data = load_all_calls(page_size=1000)
+    elapsed = time.time() - t0
+
+st.success(f"✅ Loaded {len(call_data)} calls in {elapsed:.2f}s")
+meta_df = pd.DataFrame(call_data)
+
 
 # --- Normalize raw fields into your canonical names: ---
 
