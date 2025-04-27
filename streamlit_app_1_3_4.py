@@ -50,17 +50,6 @@ if meta_df.empty:
     st.warning("No call data found in Firestore.")
     st.stop()
 
-st.write("🚨 Columns in meta_df:", meta_df.columns.tolist())
-st.write("🚨 Sample rows in meta_df:", meta_df.head())
-st.write("🚨 dtypes in meta_df:", meta_df.dtypes)
-
-# Now finally parse as datetime
-if "call_date" in meta_df.columns:
-    meta_df = meta_df.rename(columns={"call_date": "Call Date"})
-else:
-    st.error("❌ No valid Call Date field found in the database.")
-    st.stop()
-
 # Fix: Create Avg Happiness % directly from average_happiness_value
 meta_df["Avg Happiness %"] = meta_df["average_happiness_value"]
 
@@ -133,7 +122,11 @@ elif authentication_status:
     meta_df["Call Duration (min)"] = meta_df["Call Duration (s)"] / 60
     meta_df["Total Emotions"] = meta_df[["happy", "angry", "sad", "neutral"]].sum(axis=1)
     meta_df["Avg Happiness %"] = (meta_df["happy"] / meta_df["Total Emotions"]) * 100
-    meta_df["Call Date"] = pd.to_datetime(meta_df["Call Date"], format="%m%d%Y", errors="coerce")
+
+    # Firestore already stores proper datetime objects — no need to parse format
+    # Just rename it to "Call Date" for consistency
+    meta_df.rename(columns={"date": "Call Date"}, inplace=True)
+
     meta_df.dropna(subset=["Call Date"], inplace=True)
 
     if meta_df["Call Date"].isnull().all():
