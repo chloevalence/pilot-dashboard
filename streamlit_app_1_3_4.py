@@ -47,43 +47,35 @@ call_data = [doc.to_dict() for doc in docs]
 meta_df = pd.DataFrame(call_data)
 
 # --- Normalize raw fields into your canonical names: ---
-# 1) Rename the raw fields to canonical columns
+
 meta_df.rename(columns={
-    "company":   "Company",
-    "agent":     "Agent",
-    "call_date": "Call Date",    # from Firestore
-    "date_raw":  "Date Raw",     # MMDDYYYY from your metadata
-    "time":      "Call Time",
-    "call_id":   "Call ID",
-    "low_confidences": "Low Confidences",
+    "company":        "Company",
+    "agent":          "Agent",
+    "call_date":      "Call Date",
+    "date_raw":       "Date Raw",   # MMDDYYYY
+    "time":           "Call Time",
+    "call_id":        "Call ID",
+    "low_confidences":"Low Confidences"
 }, inplace=True)
 
-# 2) If Call Date is missing or entirely NaT, parse from Date Raw
+# First, if all Call Dates are missing, try parsing Date Raw
 if ("Call Date" not in meta_df.columns) or meta_df["Call Date"].isna().all():
     if "Date Raw" in meta_df.columns:
-        # parse "MMDDYYYY" into midnight UTC
         meta_df["Call Date"] = pd.to_datetime(
             meta_df["Date Raw"],
             format="%m%d%Y",
             errors="coerce"
         )
-        failed = meta_df["Call Date"].isna().sum()
-        if failed:
-            st.sidebar.warning(f"⚠️ {failed} calls still lack a valid date after parsing Date Raw.")
     else:
-        st.sidebar.error("❌ Neither Call Date nor Date Raw found – cannot parse dates.")
+        st.sidebar.error("❌ Neither Call Date nor Date Raw found—cannot parse any dates.")
+        st.stop()
 
-# 3) Now your existing guarded parse/drop
-if "Call Date" in meta_df.columns:
-    meta_df["Call Date"] = pd.to_datetime(meta_df["Call Date"], errors="coerce")
-    before = len(meta_df)
-    meta_df.dropna(subset=["Call Date"], inplace=True)
-    dropped = before - len(meta_df)
-    if dropped:
-        st.sidebar.warning(f"⚠️ Dropped {dropped} calls with no valid date.")
-else:
-    st.sidebar.error("❌ No ‘Call Date’ column found – skipping date filters.")
-    st.stop()
+# Now, drop anything still unparseable in one go
+before = len(meta_df)
+meta_df.dropna(subset=["Call Date"], inplace=True)
+dropped = before - len(meta_df)
+if dropped:
+    st.sidebar.warning(f"⚠️ Dropped {dropped} calls with no valid date.")
 
 # Fix: Create Avg Happiness % directly from average_happiness_value
 meta_df["Avg Happiness %"] = meta_df["average_happiness_value"]
