@@ -50,6 +50,10 @@ if meta_df.empty:
     st.warning("No call data found in Firestore.")
     st.stop()
 
+st.write("🚨 Columns in meta_df:", meta_df.columns.tolist())
+st.write("🚨 Sample rows in meta_df:", meta_df.head())
+st.write("🚨 dtypes in meta_df:", meta_df.dtypes)
+
 # Now finally parse as datetime
 if "call_date" in meta_df.columns:
     meta_df = meta_df.rename(columns={"call_date": "Call Date"})
