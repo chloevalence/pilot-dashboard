@@ -241,7 +241,7 @@ elif authentication_status:
         table.auto_set_font_size(False)
         table.set_fontsize(10)
         table.auto_set_column_width(col=list(range(len(agent_summary.columns))))
-        figures.append((fig_leaderboard, "🏆 Agent Leaderboard"))
+        figures.append((fig_leaderboard, "Agent Leaderboard"))
         plt.close(fig_leaderboard)
 
     col4, col5 = st.columns(2)
@@ -256,8 +256,7 @@ elif authentication_status:
             filtered_df.groupby("Agent")["Avg Happiness %"].mean().sort_values().plot(kind="barh", ax=ax1, color="teal")
             ax1.set_xlabel("Avg Happiness (%)")
             st.pyplot(fig1)
-            figures.append((fig1, "📊 Average Happiness by Agent"))
-
+            figures.append((fig1, "Average Happiness by Agent"))
 
     with col5:
         if show_rolling:
@@ -273,7 +272,7 @@ elif authentication_status:
             ax2.set_xlabel("Date")
             ax2.legend()
             st.pyplot(fig2)
-            figures.append((fig2, "📈 Rolling Happiness per Company"))
+            figures.append((fig2, "Rolling Happiness per Company"))
 
     with col6:
         if show_emotion_by_company:
@@ -285,7 +284,7 @@ elif authentication_status:
             ax3.set_xlabel("Company")
             ax3.legend(title="Emotion")
             st.pyplot(fig3)
-            figures.append((fig3, "🎯 Emotion Distribution by Company"))
+            figures.append((fig3, "Emotion Distribution by Company"))
 
     with col7:
         if show_avg_by_time:
@@ -295,7 +294,7 @@ elif authentication_status:
             ax4.set_xlabel("Call Time")
             ax4.set_ylabel("Avg Happiness (%)")
             st.pyplot(fig4)
-            figures.append((fig4, "📌 Happiness by Time of Day"))
+            figures.append((fig4, "Happiness by Time of Day"))
 
     with col8:
         if show_duration_vs_happiness:
@@ -305,7 +304,7 @@ elif authentication_status:
             ax5.set_xlabel("Call Duration (min)")
             ax5.set_ylabel("Avg Happiness (%)")
             st.pyplot(fig5)
-            figures.append((fig5, "📍 Duration vs Happiness"))
+            figures.append((fig5, "Duration vs Happiness"))
 
 
     with col9:
@@ -316,7 +315,7 @@ elif authentication_status:
             ax6.set_xlabel("Low Confidence (%)")
             ax6.set_ylabel("Avg Happiness (%)")
             st.pyplot(fig6)
-            figures.append((fig6, "📈 Happiness vs Low Confidence"))
+            figures.append((fig6, "Happiness vs Low Confidence"))
 
     with col10:
         if show_emotion_by_agent:
@@ -328,7 +327,7 @@ elif authentication_status:
             ax7.set_ylabel("Emotion %")
             ax7.set_xlabel("Agent")
             st.pyplot(fig7)
-            figures.append((fig7, "🧊 Emotion Proportion by Agent"))
+            figures.append((fig7, "Emotion Proportion by Agent"))
 
     with col11:
         if show_duration_by_company:
@@ -340,7 +339,7 @@ elif authentication_status:
             ax8.set_ylabel("Avg Duration (min)")
             ax8.set_xlabel("Company")
             st.pyplot(fig8)
-            figures.append((fig8, "📶 Avg Call Duration by Company"))
+            figures.append((fig8, "Avg Call Duration by Company"))
 
     if show_volume:
         st.subheader("📞 Call Volume per Agent per Day")
@@ -357,7 +356,7 @@ elif authentication_status:
                 label.set_horizontalalignment('right')
 
         st.pyplot(facet.fig)
-        figures.append((facet.fig, "📞 Call Volume per Agent per Day"))
+        figures.append((facet.fig, "Call Volume per Agent per Day"))
 
     # --- Create Excel in memory ---
     excel_buffer = io.BytesIO()
