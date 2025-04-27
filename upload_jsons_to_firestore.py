@@ -33,17 +33,42 @@ else:
 with zipfile.ZipFile(zip_path, "r") as z:
     z.extractall(temp_dir)
 
+# --- VALIDATION FUNCTION ---
+def is_valid_json(filepath: Path):
+    # 1) Skip any ".mp3.json" dumps
+    if filepath.name.endswith(".mp3.json"):
+        return False, "Filename is an mp3 dump"
+
+    # 2) Must parse as JSON
+    try:
+        data = json.loads(filepath.read_text(encoding="utf-8"))
+    except Exception as e:
+        return False, f"JSON parsing error: {e}"
+
+    # 3) metadata must include agent, company, time, date
+    metadata = data.get("metadata", {})
+    for field in ("agent", "company", "time", "date"):
+        if not metadata.get(field):
+            return False, f"Missing metadata field: {field}"
+
+    # 4) Must have an average_happiness_value
+    if data.get("average_happiness_value") is None:
+        return False, "Missing average_happiness_value"
+
+    # If we reach here, it’s valid
+    return True, data
+
 # --- PROCESS & UPLOAD ---
 skipped_files = []
 uploaded_count = 0
 
 for file_path in temp_dir.rglob("*.json"):
-    try:
-        data = json.loads(file_path.read_text())
-    except Exception as e:
-        skipped_files.append((file_path.name, f"JSON load error: {e}"))
+    valid, result = is_valid_json(file_path)
+    if not valid:
+        skipped_files.append((file_path.name, result))
         continue
 
+    data = result
     # --- Flatten metadata ---
     metadata    = data.get("metadata", {})
     document_id = metadata.get("call_id", file_path.stem)
@@ -53,9 +78,8 @@ for file_path in temp_dir.rglob("*.json"):
     date_raw    = metadata.get("date")  # MMDDYYYY string
 
     # --- Parse the real timestamp from top-level call_date ---
-    raw_call_date = metadata.get("date")  # e.g. "04112025"
     try:
-        parsed_call_date = datetime.strptime(raw_call_date, "%m%d%Y")
+        parsed_call_date = datetime.strptime(date_raw, "%m%d%Y")
     except Exception:
         parsed_call_date = None
 
