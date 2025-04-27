@@ -78,8 +78,12 @@ if meta_df["Call Date"].isnull().any():
         ].apply(lambda x: infer_date_from_id(str(x)) if pd.notnull(x) else None)
 
 # Now finally parse as datetime
-meta_df["Call Date"] = pd.to_datetime(meta_df["Call Date"], format="%m%d%Y", errors="coerce")
-
+if "call_date" in meta_df.columns:
+    meta_df = meta_df.rename(columns={"call_date": "Call Date"})
+else:
+    st.error("❌ No valid Call Date field found in the database.")
+    st.stop()
+    
 # Fix: Create Avg Happiness % directly from average_happiness_value
 meta_df["Avg Happiness %"] = meta_df["average_happiness_value"]
 
