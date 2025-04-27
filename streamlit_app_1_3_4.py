@@ -58,11 +58,27 @@ meta_df.rename(columns={
     "low_confidences": "Low Confidences",
 }, inplace=True)
 
-# 1) Parse “Call Date” into a true datetime dtype (handles both strings and datetimes)
-meta_df["Call Date"] = pd.to_datetime(meta_df["Call Date"], errors="coerce")
+# --- Normalize & parse dates ---
+if "call_date" in meta_df.columns:
+    # rename the raw field
+    meta_df.rename(columns={"call_date": "Call Date"}, inplace=True)
 
-# 2) Drop any rows where that failed
-meta_df.dropna(subset=["Call Date"], inplace=True)
+    # convert whatever’s in there to datetime (strings or Timestamps)
+    meta_df["Call Date"] = pd.to_datetime(
+        meta_df["Call Date"], errors="coerce"
+    )
+    # now drop any rows that have no date
+    before = len(meta_df)
+    meta_df = meta_df.dropna(subset=["Call Date"])
+    dropped = before - len(meta_df)
+    if dropped:
+        st.sidebar.warning(f"⚠️ Dropped {dropped} calls with no valid date.")
+else:
+    st.sidebar.error("❌ No `call_date` field found—skipping all date filters.")
+    # you can either bail out here:
+    # st.stop()
+    # or set a dummy column so downstream code doesn’t KeyError:
+    meta_df["Call Date"] = pd.NaT
 
 # Fix: Create Avg Happiness % directly from average_happiness_value
 meta_df["Avg Happiness %"] = meta_df["average_happiness_value"]
