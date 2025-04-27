@@ -134,6 +134,20 @@ elif authentication_status:
     else:
         st.error("⚠️ No date column found (tried: " + ", ".join(date_cols) + ").")
 
+    # --- Normalize any company-like field to "Company" ---
+    company_cols = [c for c in meta_df.columns if "company" in c.lower()]
+    if company_cols:
+        meta_df.rename(columns={company_cols[0]: "Company"}, inplace=True)
+    else:
+        st.error("⚠️ No company column found (tried: " + ", ".join(company_cols) + ").")
+
+    # --- Normalize any agent-like field to "Agent" ---
+    agent_cols = [c for c in meta_df.columns if "agent" in c.lower()]
+    if agent_cols:
+        meta_df.rename(columns={agent_cols[0]: "Agent"}, inplace=True)
+    else:
+        st.error("⚠️ No agent column found (tried: " + ", ".join(agent_cols) + ").")
+
     # --- Sidebar Filters ---
     st.sidebar.header("📊 Filter Data")
     min_date = meta_df["Call Date"].min()
