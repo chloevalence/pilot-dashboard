@@ -129,9 +129,6 @@ elif authentication_status:
 
     meta_df.dropna(subset=["Call Date"], inplace=True)
 
-    if meta_df["Call Date"].isnull().all():
-        st.warning("No valid dates found in call metadata.")
-        st.stop()
 
     # --- Sidebar Filters ---
     st.sidebar.header("📊 Filter Data")
