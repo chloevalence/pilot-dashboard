@@ -115,7 +115,6 @@ authenticator = stauth.Authenticate(
 )
 
 # --- LOGIN GUARD ---
-name, authentication_status, username = authenticator.login("main", "Login")
 auth_status = st.session_state.get("authentication_status")
 
 # If they’ve never submitted the form, show it
