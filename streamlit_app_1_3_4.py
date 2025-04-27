@@ -75,19 +75,11 @@ before = len(meta_df)
 
 # — identify any calls still missing a date —
 missing = meta_df[meta_df["Call Date"].isna()]
-
-if not missing.empty:
-    st.sidebar.error(f"❌ {len(missing)} calls have no valid date and will be dropped:")
-    # show a small table of their Call IDs and raw dates
-    st.sidebar.dataframe(
-        missing[["Call ID", "Date Raw", "Company", "Agent"]]
-        .reset_index(drop=True)
-    )
-
 meta_df.dropna(subset=["Call Date"], inplace=True)
 dropped = before - len(meta_df)
-if dropped:
-    st.sidebar.warning(f"⚠️ Dropped {dropped} calls with no valid date.")
+
+#if dropped:
+#    st.sidebar.warning(f"⚠️ Dropped {dropped} calls with no valid date.")
 
 # Fix: Create Avg Happiness % directly from average_happiness_value
 meta_df["Avg Happiness %"] = meta_df["average_happiness_value"]
