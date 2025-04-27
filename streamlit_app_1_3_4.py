@@ -120,33 +120,17 @@ elif authentication_status:
     meta_df["Avg Happiness %"] = (meta_df["happy"] / meta_df["Total Emotions"]) * 100
 
     # Firestore already stores proper datetime objects — no need to parse format
-    # --- Normalize any date-like field to "Call Date" ---
-    # look for common variants
-    date_cols = [c for c in meta_df.columns
-                 if c.lower() in ("call_date", "date", "timestamp")]
-    if date_cols:
-        src = date_cols[0]
-        meta_df.rename(columns={src: "Call Date"}, inplace=True)
-        # ensure it's a datetime
-        meta_df["Call Date"] = pd.to_datetime(meta_df["Call Date"], errors="coerce")
-        # now drop rows that really have no date
+    # --- Parse your call_date into a proper datetime column ---
+    if "call_date" in meta_df.columns:
+        # normalize everything (strings or datetimes) into a true timestamp series
+        meta_df["Call Date"] = pd.to_datetime(
+            meta_df["call_date"],
+            errors="coerce"  # unparseable → NaT
+        )
+        # now drop rows where that failed
         meta_df.dropna(subset=["Call Date"], inplace=True)
     else:
-        st.error("⚠️ No date column found (tried: " + ", ".join(date_cols) + ").")
-
-    # --- Normalize any company-like field to "Company" ---
-    company_cols = [c for c in meta_df.columns if "company" in c.lower()]
-    if company_cols:
-        meta_df.rename(columns={company_cols[0]: "Company"}, inplace=True)
-    else:
-        st.error("⚠️ No company column found (tried: " + ", ".join(company_cols) + ").")
-
-    # --- Normalize any agent-like field to "Agent" ---
-    agent_cols = [c for c in meta_df.columns if "agent" in c.lower()]
-    if agent_cols:
-        meta_df.rename(columns={agent_cols[0]: "Agent"}, inplace=True)
-    else:
-        st.error("⚠️ No agent column found (tried: " + ", ".join(agent_cols) + ").")
+        st.error("⚠️ No column named 'call_date' found in your data.")
 
     # --- Sidebar Filters ---
     st.sidebar.header("📊 Filter Data")
