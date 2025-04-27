@@ -8,7 +8,7 @@ This Streamlit dashboard visualizes emotion AI insights across customer support 
 - Aggregates emotional data by agent, company, and time of day
 - Enables flexible, cross-week filtering and drilldown by:
   - Date range (with presets and custom selection)
-  - Company
+  - Company 
   - Agent
 - Displays key metrics:
   - Average happiness percentage
