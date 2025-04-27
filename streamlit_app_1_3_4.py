@@ -59,26 +59,20 @@ meta_df.rename(columns={
 }, inplace=True)
 
 # --- Normalize & parse dates ---
-if "call_date" in meta_df.columns:
-    # rename the raw field
-    meta_df.rename(columns={"call_date": "Call Date"}, inplace=True)
+# --- Normalize & parse dates (handles missing dates) ---
+if "Call Date" in meta_df.columns:
+    # parse whatever’s in there (Timestamps or strings) to datetime
+    meta_df["Call Date"] = pd.to_datetime(meta_df["Call Date"], errors="coerce")
 
-    # convert whatever’s in there to datetime (strings or Timestamps)
-    meta_df["Call Date"] = pd.to_datetime(
-        meta_df["Call Date"], errors="coerce"
-    )
-    # now drop any rows that have no date
+    # drop rows that still failed to parse
     before = len(meta_df)
-    meta_df = meta_df.dropna(subset=["Call Date"])
+    meta_df.dropna(subset=["Call Date"], inplace=True)
     dropped = before - len(meta_df)
     if dropped:
         st.sidebar.warning(f"⚠️ Dropped {dropped} calls with no valid date.")
 else:
-    st.sidebar.error("❌ No `call_date` field found—skipping all date filters.")
-    # you can either bail out here:
-    # st.stop()
-    # or set a dummy column so downstream code doesn’t KeyError:
-    meta_df["Call Date"] = pd.NaT
+    st.sidebar.error("❌ No ‘Call Date’ column found—cannot filter by date.")
+    st.stop()
 
 # Fix: Create Avg Happiness % directly from average_happiness_value
 meta_df["Avg Happiness %"] = meta_df["average_happiness_value"]
@@ -161,6 +155,10 @@ elif authentication_status:
     companies = meta_df["Company"].dropna().unique().tolist()
     available_agents = meta_df[meta_df["Company"].isin(companies)]["Agent"].dropna().unique().tolist()
     dates = meta_df["Call Date"].dropna().sort_values().dt.date.unique().tolist()
+
+    if not dates:
+        st.warning("⚠️ No calls with valid dates to display. Check your data or filters.")
+        st.stop()
 
     preset_option = st.sidebar.selectbox(
         "📆 Date Range Presets",
