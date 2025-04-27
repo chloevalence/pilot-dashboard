@@ -2,6 +2,7 @@ import os
 import json
 import zipfile
 from pathlib import Path
+from datetime import datetime
 import firebase_admin
 from firebase_admin import credentials, firestore
 
@@ -23,7 +24,8 @@ print("✅ Unzipping JSON files...")
 temp_dir = Path("/tmp/json_upload")
 if temp_dir.exists():
     for file in temp_dir.rglob("*"):
-        file.unlink()
+        if file.is_file():
+            file.unlink()
 else:
     temp_dir.mkdir(parents=True, exist_ok=True)
 
@@ -35,7 +37,6 @@ print(f"✅ Found {len(json_files)} JSON files.")
 
 # --- FUNCTIONS ---
 def is_valid_json(filepath):
-    """Check if a JSON has required fields and is not junk."""
     if ".mp3.json" in filepath.name:
         return False, "Filename is an mp3"
 
@@ -76,12 +77,26 @@ for idx, filepath in enumerate(json_files, 1):
             emotion_counts[emotion] = 0
 
     document_id = filepath.stem
+
+    # --- Process Dates Safely ---
+    date_raw = data["metadata"].get("date", None)
+    parsed_date = None
+
+    if isinstance(date_raw, str):
+        try:
+            parsed_date = datetime.strptime(date_raw, "%m%d%Y")
+        except ValueError:
+            parsed_date = None
+    elif isinstance(date_raw, datetime):
+        parsed_date = date_raw
+
     upload_payload = {
         "call_id": document_id,
         "agent": data["metadata"]["agent"],
         "company": data["metadata"]["company"],
         "time": data["metadata"]["time"],
-        "date": data["metadata"]["date"],
+        "date_raw": date_raw,
+        "call_date": parsed_date,
         "average_happiness_value": data["average_happiness_value"],
         "low_confidences": data["metadata"].get("low_confidences", 0),
         **emotion_counts
