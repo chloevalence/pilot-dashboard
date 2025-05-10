@@ -8,7 +8,7 @@ import firebase_admin
 from firebase_admin import credentials, firestore
 
 # --- CONFIGURATION ---
-zip_path = "/Users/Chloe/Downloads/JSONs-20250424T060428Z-001.zip"
+zip_path = "/Users/Chloe/Downloads/JSONsLastWeek.zip"
 firebase_key_path = "/Users/Chloe/Downloads/valence-acsi-dashboard-firebase-adminsdk-fbsvc-e8065d1b80.json"
 collection_name = "calls"
 skipped_log_path = "skipped_files.txt"
