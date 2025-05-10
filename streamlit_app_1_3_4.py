@@ -227,11 +227,16 @@ if preset_option != "Custom":
         selected_dates = (today - timedelta(days=30), today)
 else:
     custom_input = st.sidebar.date_input("Select Date Range", value=(min(dates), max(dates)))
+    print(f"Custom input value: {custom_input} of type {type(custom_input)}")  # Debugging line
+
     # Ensure it's always a tuple of two dates
     if isinstance(custom_input, tuple) and len(custom_input) == 2:
         selected_dates = custom_input
-    else:
+    elif isinstance(custom_input, datetime):
         selected_dates = (custom_input, custom_input)
+    else:
+        st.error("❌ Invalid date selection. Please choose a valid date.")
+        st.stop()
 
 # Multiselect filters
 selected_companies = st.sidebar.multiselect("Select Companies", companies, default=companies)
