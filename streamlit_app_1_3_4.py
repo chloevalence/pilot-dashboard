@@ -230,12 +230,17 @@ else:
     print(f"Custom input value: {custom_input} of type {type(custom_input)}")  # Debugging line
 
     # Ensure it's always a tuple of two dates
-    if isinstance(custom_input, tuple) and len(custom_input) == 2:
-        selected_dates = custom_input
+    if isinstance(custom_input, tuple):
+        if len(custom_input) == 2:
+            selected_dates = custom_input
+        else:
+            st.warning("⚠️ Please select both a start and end date.")
+            st.stop()
     elif isinstance(custom_input, datetime):
+        # Single date selected — treat as both start and end
         selected_dates = (custom_input, custom_input)
     else:
-        st.error("❌ Invalid date selection. Please choose a valid date.")
+        st.error("❌ Invalid date input. Please try again.")
         st.stop()
 
 # Multiselect filters
