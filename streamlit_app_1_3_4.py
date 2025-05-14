@@ -227,20 +227,19 @@ if preset_option != "Custom":
         selected_dates = (today - timedelta(days=30), today)
 else:
     custom_input = st.sidebar.date_input("Select Date Range", value=(min(dates), max(dates)))
-    print(f"Custom input value: {custom_input} of type {type(custom_input)}")  # Debugging line
-
-    # Ensure it's always a tuple of two dates
-    if isinstance(custom_input, tuple):
-        if len(custom_input) == 2:
-            selected_dates = custom_input
+    # Ensure it's always a tuple of two valid date objects
+    if isinstance(custom_input, tuple) and len(custom_input) == 2:
+        start, end = custom_input
+        if isinstance(start, date) and isinstance(end, date):
+            selected_dates = (start, end)
         else:
-            st.warning("⚠️ Please select both a start and end date.")
+            st.warning("⚠️ Please select both a valid start and end date.")
             st.stop()
-    elif isinstance(custom_input, (datetime, datetime.date)):
+    elif isinstance(custom_input, date):
         # Single date selected — treat as both start and end
         selected_dates = (custom_input, custom_input)
     else:
-        st.error("❌ Invalid date input. Please try again.")
+        st.warning("⚠️ Please select a valid date range.")
         st.stop()
 
 # Multiselect filters
@@ -432,7 +431,7 @@ with ExcelWriter(excel_buffer, engine="xlsxwriter") as writer:
             return val
         return val
 
-    export_df = export_df.applymap(_clean)
+    export_df = export_df.map(_clean)
 
     # Now write export_df instead of filtered_df
     export_df.to_excel(writer, sheet_name="Call Metadata", index=False)
@@ -453,7 +452,7 @@ with ExcelWriter(excel_buffer, engine="xlsxwriter") as writer:
     for idx, (fig, _) in enumerate(figures):
         row = (idx % 2) * 25  # 0 or 25 depending on odd/even
         col = (idx // 2) * 8  # every two figures, move right
-        cell = f"{chr(65 + col)}{row + 1}"  # e.g., A1, I1, A26, I26
+        cell = f"{chr(65 + col)}{row + 1}".upper()
         insert_plot(fig, cell)
 
 # --- Download Buttons ---
