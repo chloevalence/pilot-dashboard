@@ -10,6 +10,7 @@ import streamlit_authenticator as stauth
 import firebase_admin
 from firebase_admin import credentials, firestore
 import json
+from xlsxwriter.utility import xl_rowcol_to_cell
 
 # Build Firebase credentials from secrets
 firebase_creds = {
@@ -253,7 +254,7 @@ filtered_df = meta_df[
     (meta_df["Agent"].isin(selected_agents)) &
     (meta_df["Call Date"].dt.date >= selected_dates[0]) &
     (meta_df["Call Date"].dt.date <= selected_dates[1])
-    ]
+    ].copy()
 
 if filtered_df.empty:
     st.warning("⚠️ No data matches the current filter selection. Please adjust your filters.")
@@ -452,7 +453,7 @@ with ExcelWriter(excel_buffer, engine="xlsxwriter") as writer:
     for idx, (fig, _) in enumerate(figures):
         row = (idx % 2) * 25  # 0 or 25 depending on odd/even
         col = (idx // 2) * 8  # every two figures, move right
-        cell = f"{chr(65 + col)}{row + 1}".upper()
+        cell = xl_rowcol_to_cell(row, col)
         insert_plot(fig, cell)
 
 # --- Download Buttons ---
