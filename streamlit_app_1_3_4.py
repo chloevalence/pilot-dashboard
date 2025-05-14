@@ -236,7 +236,7 @@ else:
         else:
             st.warning("⚠️ Please select both a start and end date.")
             st.stop()
-    elif isinstance(custom_input, datetime):
+    elif isinstance(custom_input, (datetime, datetime.date)):
         # Single date selected — treat as both start and end
         selected_dates = (custom_input, custom_input)
     else:
