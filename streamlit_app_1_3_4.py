@@ -254,7 +254,7 @@ filtered_df = meta_df[
     (meta_df["Agent"].isin(selected_agents)) &
     (meta_df["Call Date"].dt.date >= selected_dates[0]) &
     (meta_df["Call Date"].dt.date <= selected_dates[1])
-    ].copy()
+].copy()
 
 if filtered_df.empty:
     st.warning("⚠️ No data matches the current filter selection. Please adjust your filters.")
@@ -284,7 +284,7 @@ if show_leaderboard:
         Total_Calls=("Call ID", "count"),
         Avg_Happiness_Percent=("Avg Happiness %", "mean"),
         Avg_Call_Duration_Min=("Call Duration (min)", "mean")
-    ).reset_index().sort_values(by="Avg_Happiness_Percent", ascending=False)
+    ).reset_index().sort_values(by="Avg_Happiness_Percent", ascending=False).copy()
     st.dataframe(agent_summary, use_container_width=True)
 
     fig_leaderboard, ax = plt.subplots(figsize=(10, 6))
@@ -432,7 +432,8 @@ with ExcelWriter(excel_buffer, engine="xlsxwriter") as writer:
             return val
         return val
 
-    export_df = export_df.map(_clean)
+    for col in export_df.select_dtypes(include=["object"]):  # or all columns if needed
+        export_df[col] = export_df[col].map(_clean)
 
     # Now write export_df instead of filtered_df
     export_df.to_excel(writer, sheet_name="Call Metadata", index=False)
@@ -453,6 +454,8 @@ with ExcelWriter(excel_buffer, engine="xlsxwriter") as writer:
     for idx, (fig, _) in enumerate(figures):
         row = (idx % 2) * 25  # 0 or 25 depending on odd/even
         col = (idx // 2) * 8  # every two figures, move right
+        if col >= 16384:
+            raise ValueError("Too many columns for Excel")  # Excel supports up to XFD (~16K)
         cell = xl_rowcol_to_cell(row, col)
         insert_plot(fig, cell)
 
