@@ -280,11 +280,20 @@ if show_summary:
 # --- Leaderboard ---
 if show_leaderboard:
     st.subheader("🏆 Agent Leaderboard")
-    agent_summary = filtered_df.groupby("Agent").agg(
-        Total_Calls=("Call ID", "count"),
-        Avg_Happiness_Percent=("Avg Happiness %", "mean"),
-        Avg_Call_Duration_Min=("Call Duration (min)", "mean")
-    ).reset_index().sort_values(by="Avg_Happiness_Percent", ascending=False).copy()
+    agent_summary = (
+        filtered_df
+        .groupby("Agent")
+        .agg(
+            Total_Calls=("Call ID", "count"),
+            Avg_Happiness_Percent=("Avg Happiness %", "mean"),
+            Avg_Call_Duration_Min=("Call Duration (min)", "mean")
+        )
+        .reset_index()
+        .sort_values(by="Avg_Happiness_Percent", ascending=False)
+    )
+
+    agent_summary = agent_summary.copy()
+
     st.dataframe(agent_summary, use_container_width=True)
 
     fig_leaderboard, ax = plt.subplots(figsize=(10, 6))
@@ -456,7 +465,7 @@ with ExcelWriter(excel_buffer, engine="xlsxwriter") as writer:
         col = (idx // 2) * 8  # every two figures, move right
         if col >= 16384:
             raise ValueError("Too many columns for Excel")  # Excel supports up to XFD (~16K)
-        cell = xl_rowcol_to_cell(row, col)
+        cell = xl_rowcol_to_cell(row + 1, col)
         insert_plot(fig, cell)
 
 # --- Download Buttons ---
