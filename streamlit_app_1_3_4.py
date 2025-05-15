@@ -11,6 +11,7 @@ import firebase_admin
 from firebase_admin import credentials, firestore
 import json
 from xlsxwriter.utility import xl_rowcol_to_cell
+import time
 
 # Build Firebase credentials from secrets
 firebase_creds = {
@@ -67,19 +68,12 @@ auto_hash = st.secrets.get("auto_hash", False)
 
 # --- Fetch Call Metadata ---
 with st.spinner("⏳ Loading call data…"):
-    call_data = load_all_calls(page_size=1000)
-meta_df = pd.DataFrame(call_data)
-
-import time
-
-with st.spinner("⏳ Loading call data…"):
     t0 = time.time()
     call_data = load_all_calls(page_size=1000)
     elapsed = time.time() - t0
 
 st.success(f"✅ Loaded {len(call_data)} calls in {elapsed:.2f}s")
 meta_df = pd.DataFrame(call_data)
-
 
 # --- Normalize raw fields into your canonical names: ---
 
