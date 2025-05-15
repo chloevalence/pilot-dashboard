@@ -228,16 +228,15 @@ if preset_option != "Custom":
         selected_dates = (today - timedelta(days=30), today)
 else:
     custom_input = st.sidebar.date_input("Select Date Range", value=(min(dates), max(dates)))
-    # Ensure it's always a tuple of two valid date objects
-    if isinstance(custom_input, tuple) and len(custom_input) == 2:
-        start, end = custom_input
-        if isinstance(start, date) and isinstance(end, date):
-            selected_dates = (start, end)
+
+    # Normalize into exactly (start_date, end_date)
+    if isinstance(custom_input, tuple):
+        if len(custom_input) == 2 and all(isinstance(d, date) for d in custom_input):
+            selected_dates = custom_input
         else:
             st.warning("⚠️ Please select both a valid start and end date.")
             st.stop()
     elif isinstance(custom_input, date):
-        # Single date selected — treat as both start and end
         selected_dates = (custom_input, custom_input)
     else:
         st.warning("⚠️ Please select a valid date range.")
