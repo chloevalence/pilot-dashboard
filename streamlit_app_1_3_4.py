@@ -3,7 +3,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
 import io
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, date
 from pandas import ExcelWriter
 from matplotlib.backends.backend_pdf import PdfPages
 import streamlit_authenticator as stauth
@@ -246,6 +246,17 @@ else:
 selected_companies = st.sidebar.multiselect("Select Companies", companies, default=companies)
 available_agents = meta_df[meta_df["Company"].isin(selected_companies)]["Agent"].dropna().unique().tolist()
 selected_agents = st.sidebar.multiselect("Select Agents", available_agents, default=available_agents)
+
+# Ensure both values in selected_dates are proper `date` objects
+if isinstance(selected_dates, tuple) and len(selected_dates) == 2:
+    start_date, end_date = selected_dates
+    if not isinstance(start_date, date) or not isinstance(end_date, date):
+        st.error("❌ Invalid date range selected.")
+        st.stop()
+else:
+    st.error("❌ selected_dates is not a valid tuple of dates.")
+    st.stop()
+
 
 # Filter the DataFrame
 filtered_df = meta_df[
