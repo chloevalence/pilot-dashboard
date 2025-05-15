@@ -262,8 +262,8 @@ else:
 filtered_df = meta_df[
     (meta_df["Company"].isin(selected_companies)) &
     (meta_df["Agent"].isin(selected_agents)) &
-    (meta_df["Call Date"].dt.date >= selected_dates[0]) &
-    (meta_df["Call Date"].dt.date <= selected_dates[1])
+    (meta_df["Call Date"].dt.date >= start_date) &
+    (meta_df["Call Date"].dt.date <= end_date)
 ].copy()
 
 if filtered_df.empty:
