@@ -257,13 +257,14 @@ else:
     st.error("❌ selected_dates is not a valid tuple of dates.")
     st.stop()
 
+start, end = selected_dates
 
 # Filter the DataFrame
 filtered_df = meta_df[
     (meta_df["Company"].isin(selected_companies)) &
     (meta_df["Agent"].isin(selected_agents)) &
-    (meta_df["Call Date"].dt.date >= start_date) &
-    (meta_df["Call Date"].dt.date <= end_date)
+    (meta_df["Call Date"].dt.date >= start) &
+    (meta_df["Call Date"].dt.date <= end)
 ].copy()
 
 if filtered_df.empty:
