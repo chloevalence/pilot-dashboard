@@ -446,7 +446,7 @@ with ExcelWriter(excel_buffer, engine="xlsxwriter") as writer:
             return val
         return val
 
-    for col in export_df.select_dtypes(include=["object"]):  # or all columns if needed
+    for col in export_df.columns:
         export_df[col] = export_df[col].map(_clean)
 
     # Now write export_df instead of filtered_df
