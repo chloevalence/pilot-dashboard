@@ -60,7 +60,7 @@ def load_all_calls(page_size: int = 1000):
 # Connect to Firestore
 db = firestore.client()
 
-st.set_page_config(page_title="ACSI Emotion Dashboard", layout="wide")
+st.set_page_config(page_title="Emotion Dashboard", layout="wide")
 
 credentials = st.secrets["credentials"].to_dict()
 cookie = st.secrets["cookie"]
@@ -501,9 +501,9 @@ pdf_buffer.seek(0)
 st.download_button(
     label="📄 Export All Graphs as PDF",
     data=pdf_buffer,
-    file_name="ACSI_Charts.pdf",
+    file_name="Charts.pdf",
     mime="application/pdf"
 )
 
 st.markdown("---")
-st.markdown("Built with ❤️ by [Valence](https://www.getvalenceai.com) | ACSI Pilot Dashboard © 2025")
+st.markdown("Built with ❤️ by [Valence](https://www.getvalenceai.com) | Pilot Dashboard © 2025")
